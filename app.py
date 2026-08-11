@@ -1,16 +1,20 @@
+import os
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import pymysql
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'goshare_super_secret_key'
+app.secret_key = os.getenv('SECRET_KEY', 'goshare_super_secret_key')
 
+# Aiven MySQL ডাটাবেজ কনফিগারেশন (আপনার ছবি অনুযায়ী আপডেট করা হয়েছে)
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '',
-    'database': 'ridesharing',
-    'cursorclass': pymysql.cursors.DictCursor
+    'host': 'goshare-ubayer-goshare.j.aivencloud.com',
+    'user': 'avnadmin',
+    'password': 'AVNS_x5ZAs_c_tFxX1_8zKHf',
+    'database': 'defaultdb', # আপনার Aiven-এর ডিফল্ট ডাটাবেজ
+    'port': 11375,
+    'cursorclass': pymysql.cursors.DictCursor,
+    'ssl': {'ssl': {}} # Aiven-এর SSL REQUIRED মেলাতে এটি আবশ্যক
 }
 
 def get_db():
@@ -282,7 +286,6 @@ def get_available_rides():
 
         driver_id = driver_row['DriverID']
         
-        # শুধুমাত্র Requested রাইড এবং উক্ত ড্রাইভারের একসেপ্ট করা রাইড ফেচ করবে
         cursor.execute("""
             SELECT r.*, u.FullName as PassengerName, u.Phone as PassengerPhone
             FROM Rides r
@@ -415,4 +418,5 @@ def logout():
     return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
