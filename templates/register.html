@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoShare - Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0c1a30; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 0; }
+
+        .register-card { background: #ffffff; padding: 35px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 100%; max-width: 420px; }
+        .register-card h2 { text-align: center; color: #0c1a30; margin-bottom: 25px; font-size: 24px; }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; transition: 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: #0088cc; box-shadow: 0 0 5px rgba(0, 136, 204, 0.3); }
+
+        #driverFields { display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px; }
+
+        .btn-register { width: 100%; background: #0088cc; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-register:hover { background: #006699; }
+
+        .footer-text { text-align: center; margin-top: 20px; font-size: 14px; color: #64748b; }
+        .footer-text a { color: #0088cc; text-decoration: none; font-weight: bold; }
+        .footer-text a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="register-card">
+        <h2>নতুন অ্যাকাউন্ট খুলুন</h2>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <input type="text" id="name" placeholder="আপনার পুরো নাম" required>
+            </div>
+
+            <div class="form-group">
+                <input type="email" id="email" placeholder="ইমেইল" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="phone" placeholder="ফোন নম্বর" required>
+            </div>
+
+            <div class="form-group">
+                <input type="password" id="password" placeholder="পাসওয়ার্ড" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">ইউজার টাইপ (Role) নির্বাচন করুন:</label>
+                <select id="role" required onchange="toggleDriverFields()">
+                    <option value="Passenger">Passenger</option>
+                    <option value="Driver">Driver</option>
+                </select>
+            </div>
+
+            <!-- ড্রাইভারের জন্য বিশেষ ফিল্ডসমূহ -->
+            <div id="driverFields">
+                <div class="form-group">
+                    <label for="license">ড্রাইভিং লাইসেন্স নম্বর</label>
+                    <input type="text" id="license" placeholder="যেমন: DL10001">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="vehicle_type">যানবাহনের ধরন (Vehicle Type)</label>
+                    <select id="vehicle_type">
+                        <option value="Car">Car</option>
+                        <option value="Bike">Bike</option>
+                        <option value="CNG">CNG</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">রেজিস্ট্রেশন করুন</button>
+        </form>
+
+        <div class="footer-text">
+            ইতোমধ্যে অ্যাকাউন্ট আছে? <a href="/login">লগইন করুন</a>
+        </div>
+    </div>
+
+    <script>
+        function toggleDriverFields() {
+            const role = document.getElementById('role').value;
+            const driverFields = document.getElementById('driverFields');
+            const licenseInput = document.getElementById('license');
+
+            if (role === 'Driver') {
+                driverFields.style.display = 'block';
+                licenseInput.setAttribute('required', 'true');
+            } else {
+                driverFields.style.display = 'none';
+                licenseInput.removeAttribute('required');
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const license = document.getElementById('license').value;
+            const vehicle_type = document.getElementById('vehicle_type').value;
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name, 
+                        email, 
+                        phone, 
+                        password, 
+                        role,
+                        license_number: license,
+                        vehicle_type: vehicle_type
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert(data.message);
+                    window.location.href = '/login';
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('রেজিস্ট্রেশন করতে সমস্যা হয়েছে!');
+            }
+        });
+    </script>
+
+</body>
+</html>
